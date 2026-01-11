@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Tracker</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+
+<style>
+:root{
+  --bg:#0b1220;
+  --card:#0f172a;
+  --soft:#1e293b;
+  --text:#f8fafc;
+  --muted:#94a3b8;
+  --idr1:#6366f1;
+  --idr2:#818cf8;
+  --thb1:#22c55e;
+  --thb2:#4ade80;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Inter,Segoe UI,sans-serif;
+  background:linear-gradient(180deg,#020617,#0b1220);
+  color:var(--text);
+}
+.container{max-width:1200px;margin:auto;padding:28px}
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:26px;
+}
+.header h1{font-size:1.4rem;margin:0}
+.header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+
+.card{
+  background:linear-gradient(180deg,#020617,var(--card));
+  border-radius:var(--radius);
+  padding:22px;
+  margin-bottom:22px;
+}
+.grid-2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+@media(max-width:900px){
+  .grid-2{grid-template-columns:1fr}
+}
+.stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:14px;
+}
+.stat{padding:16px;border-radius:14px}
+.stat span{font-size:12px;color:#e5e7eb}
+.stat strong{font-size:1.2rem}
+.idr{background:linear-gradient(135deg,var(--idr1),var(--idr2))}
+.thb{background:linear-gradient(135deg,var(--thb1),var(--thb2))}
+
+.row{display:grid;grid-template-columns:1fr auto;gap:10px}
+
+input,select,button{
+  height:44px;
+  border-radius:12px;
+  border:none;
+  padding:0 14px;
+  background:var(--soft);
+  color:white;
+}
+button{
+  cursor:pointer;
+  font-weight:600;
+}
+
+.form{
+  display:grid;
+  grid-template-columns:150px 1.4fr 1fr 90px 1fr;
+  gap:10px;
+}
+@media(max-width:900px){
+  .form{grid-template-columns:1fr}
+}
+
+table{
+  width:100%;
+  border-spacing:0 8px;
+}
+th{
+  font-size:12px;
+  color:var(--muted);
+  text-align:left;
+}
+td{
+  background:#020617;
+  padding:12px;
+}
+td:first-child{border-radius:12px 0 0 12px}
+td:last-child{border-radius:0 12px 12px 0}
+
+.lock{opacity:.4;pointer-events:none}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>💳 Finance Tracker</h1>
+    <p id="bulanAktif"></p>
+  </div>
+</div>
+
+<!-- FILTER -->
+<div class="card">
+  <div class="row">
+    <select id="filterBulan"></select>
+    <select id="filterTahun"></select>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="grid-2">
+
+<div class="card">
+  <h3>🇮🇩 Rupiah</h3>
+  <div class="stats">
+    <div class="stat idr">
+      <span>Sisa</span>
+      <strong>Rp <span id="sisaIDR">0</span></strong>
+    </div>
+    <div class="stat idr">
+      <span>Keluar</span>
+      <strong>Rp <span id="totalIDR">0</span></strong>
+    </div>
+  </div>
+  <div class="row">
+    <input id="tabIDR" placeholder="Tabungan IDR">
+    <button onclick="UI.saveTab('IDR')">Simpan</button>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🇹🇭 Baht</h3>
+  <div class="stats">
+    <div class="stat thb">
+      <span>Sisa</span>
+      <strong>฿ <span id="sisaTHB">0</span></strong>
+    </div>
+    <div class="stat thb">
+      <span>Keluar</span>
+      <strong>฿ <span id="totalTHB">0</span></strong>
+    </div>
+  </div>
+  <div class="row">
+    <input id="tabTHB" placeholder="Tabungan THB">
+    <button onclick="UI.saveTab('THB')">Simpan</button>
+  </div>
+</div>
+
+</div>
+
+<!-- FORM -->
+<div class="card">
+  <h3>Tambah Pengeluaran</h3>
+  <div class="form" id="form">
+    <input type="date" id="tgl">
+    <input id="ket" placeholder="Keterangan">
+    <select id="kat">
+      <option>Makan</option>
+      <option>Transport</option>
+      <option>Hiburan</option>
+      <option>Lainnya</option>
+    </select>
+    <select id="cur">
+      <option value="IDR">IDR</option>
+      <option value="THB">THB</option>
+    </select>
+    <input id="jml" placeholder="Nominal">
+  </div>
+  <button style="margin-top:14px;width:160px" onclick="UI.add()">Tambah</button>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+  <h3>Riwayat</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Keterangan</th>
+        <th>Cur</th>
+        <th>Jumlah</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="list"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+/* ===== BULAN ===== */
+const MONTHS=[
+  "Januari","Februari","Maret","April","Mei","Juni",
+  "Juli","Agustus","September","Oktober","November","Desember"
+];
+
+/* ===== UTIL ===== */
+const U={
+  num:v=>parseInt(v.replace(/\D/g,''))||0,
+  fmt:n=>n.toLocaleString("id-ID")
+};
+
+/* ===== STORAGE ===== */
+const STORE={
+  get:()=>JSON.parse(localStorage.getItem("data")||"[]"),
+  set:d=>localStorage.setItem("data",JSON.stringify(d)),
+  tab:c=>parseInt(localStorage.getItem("tab_"+c))||0,
+  setTab:(c,v)=>localStorage.setItem("tab_"+c,v)
+};
+
+/* ===== UI ===== */
+const UI={
+  locked(){
+    const now=new Date();
+    return new Date(filterTahun.value,filterBulan.value) <
+           new Date(now.getFullYear(),now.getMonth());
+  },
+  render(){
+    let idr=0,thb=0;
+    list.innerHTML="";
+    STORE.get().forEach((x,i)=>{
+      const d=new Date(x.tgl);
+      if(d.getMonth()!=filterBulan.value||d.getFullYear()!=filterTahun.value) return;
+      x.cur==="IDR"?idr+=x.jml:thb+=x.jml;
+      list.innerHTML+=`
+        <tr class="${UI.locked()?"lock":""}">
+          <td>${x.tgl}</td>
+          <td>${x.ket}</td>
+          <td>${x.cur}</td>
+          <td>${U.fmt(x.jml)}</td>
+          <td><button onclick="UI.del(${i})">✖</button></td>
+        </tr>`;
+    });
+    totalIDR.textContent=U.fmt(idr);
+    totalTHB.textContent=U.fmt(thb);
+    sisaIDR.textContent=U.fmt(STORE.tab("IDR")-idr);
+    sisaTHB.textContent=U.fmt(STORE.tab("THB")-thb);
+    bulanAktif.textContent=`📆 ${MONTHS[filterBulan.value]} ${filterTahun.value}`;
+    document.querySelectorAll("#form input,#form select")
+      .forEach(e=>e.disabled=UI.locked());
+  },
+  add(){
+    if(UI.locked()) return alert("Bulan terkunci");
+    const d=STORE.get();
+    d.push({tgl:tgl.value,ket:ket.value,jml:U.num(jml.value),cur:cur.value});
+    STORE.set(d);
+    UI.render();
+  },
+  del(i){
+    if(UI.locked()) return;
+    const d=STORE.get();
+    d.splice(i,1);
+    STORE.set(d);
+    UI.render();
+  },
+  saveTab(c){
+    const v=U.num(document.getElementById("tab"+c).value);
+    if(v) STORE.setTab(c,v);
+    UI.render();
+  }
+};
+
+/* ===== INIT ===== */
+(()=>{
+  const now=new Date();
+  MONTHS.forEach((m,i)=>{
+    filterBulan.innerHTML+=`<option value="${i}">${m}</option>`;
+  });
+  for(let y=now.getFullYear()-2;y<=now.getFullYear()+1;y++){
+    filterTahun.innerHTML+=`<option>${y}</option>`;
+  }
+  filterBulan.value=now.getMonth();
+  filterTahun.value=now.getFullYear();
+  filterBulan.onchange=filterTahun.onchange=UI.render;
+  UI.render();
+})();
+
+/* ===== PWA REGISTER ===== */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+</body>
+</html>
